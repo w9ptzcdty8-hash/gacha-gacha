@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#050505">
+  <meta name="description" content="賞とカプセルの数を設定して、ボタンで回すガチャガチャ抽選。残数管理・履歴・オフライン利用に対応。">
+  <title>ガチャガチャ | MRS TOOLS</title>
+  <link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <p class="brand">MRS TOOLS</p>
+      <h1>ガチャガチャ</h1>
+    </header>
+    <nav class="tabs" aria-label="画面切り替え">
+      <button type="button" class="tab active" data-panel="draw-panel" aria-current="page">抽選</button>
+      <button type="button" class="tab" data-panel="settings-panel">賞の設定</button>
+      <button type="button" class="tab" data-panel="history-panel">履歴</button>
+    </nav>
+    <section id="draw-panel" class="tool-panel" aria-labelledby="draw-title">
+      <div class="panel-heading"><h2 id="draw-title">カプセルを引こう</h2><span class="remaining-badge">残り <strong id="total-remaining">0</strong> 個</span></div>
+      <div class="machine-stage" id="machine-stage" aria-hidden="true">
+        <svg class="machine" viewBox="0 0 360 385" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="housing" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffa94f"/><stop offset=".6" stop-color="#ed882d"/><stop offset="1" stop-color="#ca611b"/></linearGradient>
+            <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#344b50"/><stop offset="1" stop-color="#1b292d"/></linearGradient>
+            <linearGradient id="steel" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#eee9dd"/><stop offset=".5" stop-color="#b9b5aa"/><stop offset="1" stop-color="#777c77"/></linearGradient>
+            <radialGradient id="capsule-glass" cx=".3" cy=".2" r=".9"><stop stop-color="#fff" stop-opacity=".7"/><stop offset="1" stop-color="#dbe9e6" stop-opacity=".2"/></radialGradient>
+            <clipPath id="dome-clip"><path d="M92 158V111C92 58 127 30 180 30S268 58 268 111V158Z"/></clipPath>
+            <g id="small-capsule">
+              <circle r="17" fill="currentColor" stroke="#18242a" stroke-width="1.5"/>
+              <path d="M-17 0A17 17 0 0 1 17 0Z" fill="#e8f3ef" fill-opacity=".65"/>
+              <path d="M-16 0H16" stroke="#18242a" stroke-width="1.2" stroke-opacity=".4"/>
+              <path d="M-9 -6Q-6 -12 0 -12" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".7"/>
+            </g>
+          </defs>
+          <ellipse cx="180" cy="297" rx="102" ry="10" fill="#000" opacity=".3"/>
+          <!-- 透明ドームと中のカプセル -->
+          <path d="M92 158V111C92 58 127 30 180 30S268 58 268 111V158Z" fill="url(#glass)" stroke="#81948c" stroke-width="3"/>
+          <g clip-path="url(#dome-clip)">
+            <g id="dome-capsules">
+              <use href="#small-capsule" transform="translate(119 145) rotate(-25)" color="#ed605b"/>
+              <use href="#small-capsule" transform="translate(151 151) rotate(30)" color="#6dbb8d"/>
+              <use href="#small-capsule" transform="translate(183 143) rotate(-15)" color="#f3c64c"/>
+              <use href="#small-capsule" transform="translate(215 149) rotate(40)" color="#609cea"/>
+              <use href="#small-capsule" transform="translate(244 140) rotate(-20)" color="#aa88dc"/>
+              <use href="#small-capsule" transform="translate(136 118) rotate(20)" color="#609cea"/>
+              <use href="#small-capsule" transform="translate(168 112) rotate(-30)" color="#ea89bc"/>
+              <use href="#small-capsule" transform="translate(201 115) rotate(15)" color="#f4f1e9"/>
+              <use href="#small-capsule" transform="translate(233 111) rotate(-40)" color="#ed605b"/>
+              <use href="#small-capsule" transform="translate(151 85) rotate(-15)" color="#f3c64c"/>
+              <use href="#small-capsule" transform="translate(185 81) rotate(25)" color="#6dbb8d"/>
+              <use href="#small-capsule" transform="translate(219 83) rotate(-25)" color="#ea89bc"/>
+            </g>
+            <path d="M108 116V103C108 72 126 51 150 45" fill="none" stroke="#f2fff6" stroke-width="9" stroke-linecap="round" opacity=".17"/>
+            <path d="M249 96V137" stroke="#e4f3ec" stroke-width="3" stroke-linecap="round" opacity=".14"/>
+          </g>
+          <path d="M102 34Q180 7 258 34L249 46Q180 25 111 46Z" fill="url(#housing)" stroke="#b86929" stroke-width="2.5"/>
+          <path d="M106 35Q180 12 254 35" fill="none" stroke="#ffd5a1" stroke-width="3" stroke-linecap="round"/>
+          <!-- 本体。コイン投入なしでボタンから回す -->
+          <path d="M88 157Q88 150 97 150H263Q272 150 272 157V278Q272 290 260 290H100Q88 290 88 278Z" fill="url(#housing)" stroke="#9d531f" stroke-width="3"/>
+          <path d="M96 160H264" stroke="#ffd5a1" stroke-width="3" opacity=".7"/>
+          <rect x="106" y="165" width="148" height="20" rx="5" fill="#482e23"/>
+          <text x="180" y="179" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" letter-spacing="2" fill="#ffe0ae">GACHA GACHA</text>
+          <circle cx="180" cy="215" r="26" fill="#b55d20" stroke="#ffd19a" stroke-width="2"/>
+          <circle cx="180" cy="215" r="21" fill="url(#steel)" stroke="#747971" stroke-width="2"/>
+          <g id="gacha-knob" class="gacha-knob">
+            <rect x="155" y="208" width="50" height="14" rx="7" fill="#e4e0d4" stroke="#626963" stroke-width="2"/>
+            <path d="M161 211H198" stroke="#fffaf0" stroke-width="2" stroke-linecap="round" opacity=".8"/>
+            <circle cx="180" cy="215" r="4" fill="#a1a399"/>
+          </g>
+          <path d="M172 196L180 192L188 196" fill="none" stroke="#646b62" stroke-width="2" stroke-linecap="round"/>
+          <rect x="129" y="252" width="102" height="29" rx="10" fill="#492c1b" stroke="#b56424" stroke-width="3"/>
+          <path d="M137 254H223" stroke="#312419" stroke-width="3" stroke-linecap="round"/>
+          <path d="M135 273Q180 282 225 273" fill="none" stroke="#eab27b" stroke-width="3" stroke-linecap="round"/>
+          <rect x="84" y="288" width="192" height="10" rx="5" fill="#a75421" stroke="#693b22" stroke-width="2"/>
+          <!-- 出たカプセルは取り出し口の下へ落ち、上下に開く -->
+          <ellipse id="capsule-shadow" cx="180" cy="360" rx="30" ry="6" fill="#000" opacity=".3" hidden/>
+          <g id="drawn-capsule" class="drawn-capsule" hidden>
+            <g class="capsule-top">
+              <path d="M155 335A25 25 0 0 1 205 335Z" fill="url(#capsule-glass)" stroke="#c9d9d3" stroke-width="2"/>
+              <path d="M164 324Q170 316 180 315" fill="none" stroke="#f4fff8" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+              <path d="M155 335H205" stroke="#e4eee9" stroke-width="2"/>
+            </g>
+            <g class="capsule-bottom">
+              <path class="capsule-fill" d="M155 335A25 25 0 0 0 205 335Z" stroke="#657268" stroke-width="1.5"/>
+              <ellipse cx="180" cy="335" rx="25" ry="4" class="capsule-fill" stroke="#dde3d0" stroke-width="1.5"/>
+              <path d="M164 343Q168 350 174 352" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".35"/>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <div class="result-box" role="status" aria-live="polite" aria-atomic="true"><span class="result-eyebrow" id="result-label">準備できました</span><p id="result-text">何が出るかな？</p></div>
+      <button id="spin-button" class="primary-button" type="button">まわす <span aria-hidden="true">↻</span></button>
+      <p class="helper">出たカプセルは減っていきます。残りのカプセルから抽選します。</p>
+      <ul id="prize-summary" class="prize-summary" aria-label="賞ごとの残りのカプセル"></ul>
+      <button id="reset-button" class="secondary-button reset-button" type="button">カプセルを元に戻す</button>
+    </section>
+    <section id="settings-panel" class="tool-panel" aria-labelledby="settings-title" hidden>
+      <h2 id="settings-title">賞とカプセルを決める</h2>
+      <p class="panel-description">カプセルが多い賞ほど出やすくなります。各賞0〜9,999個、最大20種類まで。</p>
+      <form id="settings-form">
+        <div id="prize-editor" class="prize-editor"></div>
+        <button id="add-prize" type="button" class="secondary-button">＋ 賞を追加</button>
+        <p class="settings-total">合計 <strong id="settings-total">0</strong> カプセル</p>
+        <p id="settings-error" class="error-message" role="alert"></p>
+        <button type="submit" class="primary-button">設定を保存して抽選を始める</button>
+        <p class="helper">設定を変更して保存すると、残数と履歴をリセットします。</p>
+      </form>
+    </section>
+    <section id="history-panel" class="tool-panel" aria-labelledby="history-title" hidden>
+      <div class="panel-heading"><h2 id="history-title">抽選履歴</h2><span class="remaining-badge"><strong id="draw-count">0</strong> 回</span></div>
+      <p class="panel-description">新しい結果から表示します（最新200件）。</p>
+      <p id="history-empty" class="empty-message">まだ抽選していません。</p>
+      <ol id="history-list" class="history-list"></ol>
+    </section>
+    <p id="storage-message" class="error-message" role="alert" hidden></p>
+    <p class="save-note">設定・残数・履歴は、この端末のブラウザに保存されます。</p>
+    <footer class="site-footer"><a class="mrs-tools-link" href="https://mrs-tools.pages.dev/" target="_blank" rel="noopener noreferrer">MRS TOOLS</a></footer>
+  </main>
+  <script src="script.js?v=1"></script>
+  <div class="ad-banner" aria-label="広告"><div class="ad-banner-inner"><!-- admax -->
+    <script src="https://adm.shinobi.jp/s/8a495d941206bf0c34aff9559f8d2cea"></script>
+    <!-- admax --></div></div>
+</body>
+</html>
