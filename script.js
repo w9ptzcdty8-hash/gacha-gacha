@@ -17,6 +17,7 @@
     {id: "last", name: "参加賞", color: "white", count: 20, remaining: 20}
   ], history: [], draws: 0});
   let busy = false;
+  let awaitingOpen = false;
   let draftDirty = false;
   let stale = false;
   const storageNotice = (text) => {
@@ -66,6 +67,9 @@
     $("#drawn-capsule").hidden = !latest;
     $("#capsule-shadow").hidden = !latest;
     $("#drawn-capsule").classList.toggle("opened", !!latest);
+    $("#prize-ticket").hidden = !latest;
+    $("#ticket-name").textContent = latest ? latest.name : "";
+    $("#prize-ticket").classList.toggle("long-name", !!latest && latest.name.length > 12);
     if (latest) $("#drawn-capsule").style.setProperty("--capsule-color", colorInfo(latest.color)[2]);
   }
   function render() {
@@ -73,7 +77,8 @@
     $("#total-remaining").textContent = total.toLocaleString("ja-JP");
     $("#draw-count").textContent = state.draws.toLocaleString("ja-JP");
     $("#spin-button").disabled = busy || !total || stale;
-    $("#spin-button").textContent = busy ? "抽選中…" : total ? "まわす ↻" : "すべてのカプセルが出ました";
+    $("#open-capsule").disabled = stale || !awaitingOpen;
+    $("#spin-button").textContent = awaitingOpen ? "カプセルを開けてください" : busy ? "抽選中…" : total ? "まわす ↻" : "すべてのカプセルが出ました";
     $("#reset-button").disabled = busy || state.draws === 0 || stale;
     document.querySelectorAll(".tab").forEach((button) => { button.disabled = busy; });
     $("#prize-summary").replaceChildren(...state.prizes.map((p) => {
@@ -117,6 +122,10 @@
     catch { $("#result-label").textContent = "抽選できませんでした"; $("#result-text").textContent = "ページを再読み込みしてください"; return; }
     const prize = state.prizes.find((p) => { if (ticket < p.remaining) return true; ticket -= p.remaining; return false; });
     busy = true;
+    awaitingOpen = false;
+    $("#open-capsule").hidden = true;
+    $("#prize-ticket").hidden = true;
+    $("#machine-stage").classList.remove("awaiting-open");
     prize.remaining -= 1;
     state.draws += 1;
     state.history.unshift({prizeId: prize.id, name: prize.name, color: prize.color, number: state.draws, time: new Date().toISOString()});
@@ -141,17 +150,35 @@
       $("#result-label").textContent = "カプセルが出ました";
       window.setTimeout(() => {
         capsule.classList.remove("drop");
-        capsule.classList.add("opened");
         $("#capsule-shadow").hidden = false;
-        $("#result-label").textContent = "カプセルを開けています…";
-        window.setTimeout(() => {
-          busy = false;
-          render();
-          if (stale) storageNotice("別のタブでデータが変更されました。再読み込みしてから続けてください。");
-        }, reduced ? 0 : 400);
-      }, reduced ? 0 : 650);
+        awaitingOpen = true;
+        stage.classList.add("awaiting-open");
+        $("#open-capsule").hidden = false;
+        $("#result-label").textContent = "カプセルが出ました";
+        $("#result-text").textContent = "タップして開けよう";
+        render();
+      }, reduced ? 0 : 800);
     }, reduced ? 50 : 1300);
   });
+  function openCapsule() {
+    if (!awaitingOpen || stale) return;
+    awaitingOpen = false;
+    $("#open-capsule").hidden = true;
+    $("#machine-stage").classList.remove("awaiting-open");
+    $("#drawn-capsule").classList.add("opened");
+    $("#ticket-name").textContent = state.history[0].name;
+    $("#prize-ticket").classList.toggle("long-name", state.history[0].name.length > 12);
+    $("#prize-ticket").hidden = false;
+    $("#result-label").textContent = "カプセルを開けています…";
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.setTimeout(() => {
+      busy = false;
+      render();
+      if (stale) storageNotice("別のタブでデータが変更されました。再読み込みしてから続けてください。");
+    }, reduced ? 0 : 450);
+  }
+  $("#open-capsule").addEventListener("click", openCapsule);
+  $("#drawn-capsule").addEventListener("click", openCapsule);
   $("#reset-button").addEventListener("click", () => {
     if (busy || stale || !state.draws || !confirm("カプセルを元の個数に戻し、抽選履歴をすべて消します。賞の設定は残ります。よろしいですか？")) return;
     state.prizes.forEach((p) => { p.remaining = p.count; }); state.history = []; state.draws = 0;
